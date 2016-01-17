@@ -100,6 +100,11 @@ class Paste
     @_container.on 'paste', (ev)=>
       if ev.originalEvent?.clipboardData?
         clipboardData = ev.originalEvent.clipboardData
+        console.log "clipboardData.getData 'Text' :" + clipboardData.getData 'Text'
+        console.log "clipboardData.types :" + clipboardData.types
+        for type in clipboardData.types
+          console.log "clipboardData.getData '#{type}' :" + clipboardData.getData type
+        console.log "clipboardData.items :" + clipboardData.items
         if clipboardData.items 
           # Chrome 
           for item in clipboardData.items
