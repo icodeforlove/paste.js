@@ -38,7 +38,11 @@
   <script type="text/javascript">
     $(function(){
       $('.demo-noninputable').pastableNonInputable();
-      $('.demo-textarea').pastableTextarea();
+      $('.demo-textarea').pastableTextarea().on('focus', function(){
+        console && console.log('[textarea] focus event fired!');
+      }).on('blur', function(){
+        console && console.log('[textarea] blur event fired!');
+      });
       $('.demo-contenteditable').pastableContenteditable();
       $('.demo').on('pasteImage', function(ev, data){
         var blobUrl = URL.createObjectURL(data.blob);

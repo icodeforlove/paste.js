@@ -72,6 +72,12 @@ class Paste
     # Firefox & IE
     return @mountContenteditable textarea unless navigator.userAgent.toLowerCase().match /firefox|trident|edge/
     paste = new Paste createHiddenEditable().insertBefore(textarea), textarea
+    # stop events at capture phase
+    document.addEventListener 'focus', (-> paste.eventPropagationStopper.apply paste, arguments), true
+    document.addEventListener 'blur', (-> paste.eventPropagationStopper.apply paste, arguments), true
+    # stop events from bubbling up
+    textarea.addEventListener 'focus', (-> paste.eventPropagationStopper.apply paste, arguments), false
+    textarea.addEventListener 'blur', (-> paste.eventPropagationStopper.apply paste, arguments), false
     ctlDown = false
     $(textarea).on 'keyup', (ev)-> 
       ctlDown = false if ev.keyCode in [17, 224]
@@ -80,10 +86,13 @@ class Paste
       ctlDown = true if ev.keyCode in [17, 224]
       ctlDown = ev.ctrlKey || ev.metaKey if ev.ctrlKey? && ev.metaKey?
       if ctlDown && ev.keyCode == 86
+        paste._textarea_focus_stolen = true
         paste._container.focus()
         paste._paste_event_fired = false
         setTimeout =>
-          $(textarea).focus() unless paste._paste_event_fired
+          unless paste._paste_event_fired
+            $(textarea).focus()
+            paste._textarea_focus_stolen = false
         , 1
       null
     $(textarea).on 'paste', =>
@@ -91,6 +100,7 @@ class Paste
     $(textarea).on 'blur', => $(textarea).removeClass 'pastable-focus'
     $(paste._target).on '_pasteCheckContainerDone', => 
       $(textarea).focus()
+      paste._textarea_focus_stolen = false
     $(paste._target).on 'pasteText', (ev, data)=>
       curStart = $(textarea).prop('selectionStart')
       curEnd = $(textarea).prop('selectionEnd')
@@ -99,7 +109,10 @@ class Paste
       $(textarea)[0].setSelectionRange curStart + data.text.length, curStart + data.text.length
       $(textarea).trigger 'change'
 
-
+  eventPropagationStopper: (ev)->
+    if @_textarea_focus_stolen
+      ev.stopPropagation()
+      ev.stopImmediatePropagation()
   @mountContenteditable: (contenteditable)->
     paste = new Paste contenteditable, contenteditable
     

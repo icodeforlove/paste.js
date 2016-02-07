@@ -117,6 +117,18 @@ https://github.com/layerssss/paste.js
         return this.mountContenteditable(textarea);
       }
       paste = new Paste(createHiddenEditable().insertBefore(textarea), textarea);
+      document.addEventListener('focus', (function() {
+        return paste.eventPropagationStopper.apply(paste, arguments);
+      }), true);
+      document.addEventListener('blur', (function() {
+        return paste.eventPropagationStopper.apply(paste, arguments);
+      }), true);
+      textarea.addEventListener('focus', (function() {
+        return paste.eventPropagationStopper.apply(paste, arguments);
+      }), false);
+      textarea.addEventListener('blur', (function() {
+        return paste.eventPropagationStopper.apply(paste, arguments);
+      }), false);
       ctlDown = false;
       $(textarea).on('keyup', function(ev) {
         var ref;
@@ -134,12 +146,14 @@ https://github.com/layerssss/paste.js
           ctlDown = ev.ctrlKey || ev.metaKey;
         }
         if (ctlDown && ev.keyCode === 86) {
+          paste._textarea_focus_stolen = true;
           paste._container.focus();
           paste._paste_event_fired = false;
           setTimeout((function(_this) {
             return function() {
               if (!paste._paste_event_fired) {
-                return $(textarea).focus();
+                $(textarea).focus();
+                return paste._textarea_focus_stolen = false;
               }
             };
           })(this), 1);
@@ -161,7 +175,8 @@ https://github.com/layerssss/paste.js
       })(this));
       $(paste._target).on('_pasteCheckContainerDone', (function(_this) {
         return function() {
-          return $(textarea).focus();
+          $(textarea).focus();
+          return paste._textarea_focus_stolen = false;
         };
       })(this));
       return $(paste._target).on('pasteText', (function(_this) {
@@ -175,6 +190,13 @@ https://github.com/layerssss/paste.js
           return $(textarea).trigger('change');
         };
       })(this));
+    };
+
+    Paste.prototype.eventPropagationStopper = function(ev) {
+      if (this._textarea_focus_stolen) {
+        ev.stopPropagation();
+        return ev.stopImmediatePropagation();
+      }
     };
 
     Paste.mountContenteditable = function(contenteditable) {
