@@ -72,9 +72,6 @@ class Paste
     # Firefox & IE
     return @mountContenteditable textarea unless navigator.userAgent.toLowerCase().match /firefox|trident|edge/
     paste = new Paste createHiddenEditable().insertBefore(textarea), textarea
-    # stop events at capture phase
-    document.addEventListener 'focus', (-> paste.eventPropagationStopper.apply paste, arguments), true
-    document.addEventListener 'blur', (-> paste.eventPropagationStopper.apply paste, arguments), true
     # stop events from bubbling up
     textarea.addEventListener 'focus', (-> paste.eventPropagationStopper.apply paste, arguments), false
     textarea.addEventListener 'blur', (-> paste.eventPropagationStopper.apply paste, arguments), false
@@ -113,6 +110,7 @@ class Paste
     if @_textarea_focus_stolen
       ev.stopPropagation()
       ev.stopImmediatePropagation()
+    null
   @mountContenteditable: (contenteditable)->
     paste = new Paste contenteditable, contenteditable
     

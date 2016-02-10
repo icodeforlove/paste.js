@@ -117,12 +117,6 @@ https://github.com/layerssss/paste.js
         return this.mountContenteditable(textarea);
       }
       paste = new Paste(createHiddenEditable().insertBefore(textarea), textarea);
-      document.addEventListener('focus', (function() {
-        return paste.eventPropagationStopper.apply(paste, arguments);
-      }), true);
-      document.addEventListener('blur', (function() {
-        return paste.eventPropagationStopper.apply(paste, arguments);
-      }), true);
       textarea.addEventListener('focus', (function() {
         return paste.eventPropagationStopper.apply(paste, arguments);
       }), false);
@@ -195,8 +189,9 @@ https://github.com/layerssss/paste.js
     Paste.prototype.eventPropagationStopper = function(ev) {
       if (this._textarea_focus_stolen) {
         ev.stopPropagation();
-        return ev.stopImmediatePropagation();
+        ev.stopImmediatePropagation();
       }
+      return null;
     };
 
     Paste.mountContenteditable = function(contenteditable) {
